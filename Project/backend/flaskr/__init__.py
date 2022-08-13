@@ -54,11 +54,28 @@ def create_app(test_config=None):
     @app.route("/books/<int:book_id>")
     def view_book(book_id):
         book = Book.query.filter(Book.id == book_id).one_or_none()
-
         if book is None :
             abort(404)
        
         return jsonify({"books": book.format(), "success": True})
 
+    @app.route('/books/edit/<int:book_id>',methods=['PATCH'])
+    def update_book(book_id):
+        try:
+            book = Book.query.filter(Book.id == book_id).one_or_none()
+            if book is None :
+                abort(404)
+            else:
+                body = request.get_json()
+                #As we are only allowing rating column to be modified
+                if 'rating' in body:
+                    book.rating = int(body.get('rating'))
+                book.update()
+                return jsonify({
+                    'id':book.id,
+                    'success':True
+                })
+        except:
+            abort(500)
 
     return app
