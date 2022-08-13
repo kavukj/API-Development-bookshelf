@@ -6,7 +6,7 @@ from models import Book
 
 from models import setup_db, Book
 
-BOOKS_PER_SHELF = 8
+BOOKS_PER_SHELF = 20
 
 def paginate(request, selection):
     page = request.args.get("page", 1, type=int)
@@ -77,5 +77,25 @@ def create_app(test_config=None):
                 })
         except:
             abort(500)
+
+    @app.route('/books/<int:book_id>',methods=['DELETE'])
+    def delete_book(book_id):
+        try:
+            book = Book.query.filter(Book.id == book_id).one_or_none()
+            if book is None :
+                abort(404)
+            else:
+                book.delete()
+                selection = Book.query.order_by(Book.id).all()
+                books = paginate(request, selection)
+                return jsonify({
+                    'deleted':book.id,
+                    'books':books,
+                    'total_books':len(selection),
+                    'success':True
+                })
+
+        except:
+            abort(400)
 
     return app
