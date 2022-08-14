@@ -50,7 +50,29 @@ def create_app(test_config=None):
        
         return jsonify({"books": books, "total_books": len(selection), "success": True})
 
-     #To get specified book
+    #To create new books in database
+    @app.route('/create',methods=['POST'])
+    def create_book():
+        body = request.get_json()
+        author = body.get('author',None)
+        rating = body.get('rating',None)
+        title = body.get('title',None)
+
+        try:
+            book = Book(title = title , author = author , rating = rating)
+            book.insert()
+            selection = Book.query.order_by(Book.id).all()
+            books = paginate(request,selection)
+            return jsonify({
+                'new_book':book.id,
+                'books':books,
+                'total_books':len(selection),
+                'success':True
+            })
+        except:
+            abort(422)
+
+    #To get specified book
     @app.route("/books/<int:book_id>")
     def view_book(book_id):
         book = Book.query.filter(Book.id == book_id).one_or_none()
@@ -59,6 +81,7 @@ def create_app(test_config=None):
        
         return jsonify({"books": book.format(), "success": True})
 
+    #To edit a specified book allowing only patch method
     @app.route('/books/edit/<int:book_id>',methods=['PATCH'])
     def update_book(book_id):
         try:
@@ -78,6 +101,7 @@ def create_app(test_config=None):
         except:
             abort(500)
 
+    #Deleting a book
     @app.route('/books/<int:book_id>',methods=['DELETE'])
     def delete_book(book_id):
         try:
