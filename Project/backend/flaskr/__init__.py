@@ -6,7 +6,7 @@ from models import Book
 
 from models import setup_db, Book
 
-BOOKS_PER_SHELF = 20
+BOOKS_PER_SHELF =8
 
 def paginate(request, selection):
     page = request.args.get("page", 1, type=int)
@@ -122,4 +122,30 @@ def create_app(test_config=None):
         except:
             abort(400)
 
+    #Error handler for 404
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({
+            "success": False, 
+            "error": 404,
+            "message": "Resource Not found"
+            }), 404
+
+    #Error handler for 422    
+    @app.errorhandler(422)
+    def not_found(error):
+        return jsonify({
+            "success": False, 
+            "error": 422,
+            "message": "Cannot Process request"
+            }), 422
+
+    #Error handler for 422    
+    @app.errorhandler(400)
+    def not_found(error):
+        return jsonify({
+            "success": False, 
+            "error": 400,
+            "message": "Cannot Process request"
+            }), 400
     return app
