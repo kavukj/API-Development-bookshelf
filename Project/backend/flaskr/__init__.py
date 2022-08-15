@@ -120,7 +120,7 @@ def create_app(test_config=None):
                 })
 
         except:
-            abort(400)
+            abort(422)
 
     #Error handler for 404
     @app.errorhandler(404)
@@ -149,7 +149,7 @@ def create_app(test_config=None):
             "message": "Cannot Process request"
             }), 400
 
-    #Error handler for 425   
+    #Error handler for 405   
     @app.errorhandler(405)
     def not_found(error):
         return jsonify({
@@ -157,5 +157,5 @@ def create_app(test_config=None):
             "error": 405,
             "message": "Method not allowed"
             }), 405
-            
+
     return app
