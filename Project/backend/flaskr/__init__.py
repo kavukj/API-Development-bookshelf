@@ -53,6 +53,7 @@ def create_app(test_config=None):
     #To create new books in database
     @app.route('/create',methods=['POST'])
     def create_book():
+        print(request.get_json())
         body = request.get_json()
         author = body.get('author',None)
         rating = body.get('rating',None)
