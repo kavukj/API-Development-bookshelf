@@ -1,4 +1,5 @@
 import os
+from re import search
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy  # , or_
 from flask_cors import CORS
@@ -123,6 +124,20 @@ def create_app(test_config=None):
         except:
             abort(422)
 
+    #Search route
+    @app.route("/books",methods=["POST"])
+    def search_books():
+        search_value = request.get_json()['search']
+        print(search_value)
+        selection = Book.query.order_by(Book.id).all()
+        books = paginate(request,selection)
+        return jsonify({
+            'search_key':search,
+            'books':books,
+            'total_books':len(selection),
+            'success':True
+        })
+
     #Error handler for 404
     @app.errorhandler(404)
     def not_found(error):
@@ -134,7 +149,7 @@ def create_app(test_config=None):
 
     #Error handler for 422    
     @app.errorhandler(422)
-    def not_found(error):
+    def unprocessable(error):
         return jsonify({
             "success": False, 
             "error": 422,
@@ -143,7 +158,7 @@ def create_app(test_config=None):
 
     #Error handler for 400    
     @app.errorhandler(400)
-    def not_found(error):
+    def unprocessable(error):
         return jsonify({
             "success": False, 
             "error": 400,
@@ -152,11 +167,20 @@ def create_app(test_config=None):
 
     #Error handler for 405   
     @app.errorhandler(405)
-    def not_found(error):
+    def method_not_allowed(error):
         return jsonify({
             "success": False, 
             "error": 405,
             "message": "Method not allowed"
             }), 405
+
+    #Error handler for 500 
+    @app.errorhandler(500)
+    def server_error(error):
+        return jsonify({
+            "success": False, 
+            "error": 500,
+            "message": "Internal server error"
+            }), 500
 
     return app
