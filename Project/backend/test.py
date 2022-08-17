@@ -16,7 +16,7 @@ class BookTestCase(unittest.TestCase):
         self.database = "postgresql://student:student@localhost:5432/bookshelf_test"
         setup_db(self.app,self.database)
 
-        self.new_book = {"title": "The Great Alone", "author": "Kristin Hannah", "rating": 5}
+        self.new_book = {"title": "Still Me", "author": "Jojo Moyes", "rating": 5}
 
     def tearDown(self):
         #We do not need anything to be undone for this app as of now
@@ -48,7 +48,40 @@ class BookTestCase(unittest.TestCase):
         res = self.client().patch("/books/edit/1")
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 500)
-        #self.assertEqual(data['success'],False)
+        self.assertEqual(data['success'],False)
+        self.assertEqual(data['message'],'Internal server error')
+        self.assertEqual(data['error'],500)
+
+    def test_delete_book(self):
+        book = Book.query.filter(Book.id == 17).one_or_none()
+        res = self.client().delete("/books/17")
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code,200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['deleted'],book.id)
+        self.assertTrue(data['total_books'])
+        self.assertTrue(data['books'])
+
+    def test_delete_wrong_book(self):
+        res = self.client().delete("/books/7")
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code,422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'],'Cannot Process request')
+
+    def test_create_new_book(self):
+        res = self.client().post('/create', json=self.new_book)
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code,200)
+        self.assertEqual(data['success'],True)
+        self.assertTrue(data['books'])
+        self.assertTrue(data['new_book'])
+
+    def test_create_new_book_wrong_path(self):
+        res = self.client().post('/create/45',json=self.new_book)
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code,404)
+        self.assertEqual(data['success'],False)
 
 if __name__ == "__main__":
     unittest.main()

@@ -59,7 +59,7 @@ def create_app(test_config=None):
         author = body.get('author',None)
         rating = body.get('rating',None)
         title = body.get('title',None)
-
+        print("called")
         try:
             book = Book(title = title , author = author , rating = rating)
             book.insert()
@@ -72,7 +72,7 @@ def create_app(test_config=None):
                 'success':True
             })
         except:
-            abort(422)
+            abort(500)
 
     #To get specified book
     @app.route("/books/<int:book_id>")
