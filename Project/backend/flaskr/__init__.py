@@ -4,7 +4,7 @@ from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy  # , or_
 from flask_cors import CORS
 from models import Book
-
+from sqlalchemy.exc import SQLAlchemyError
 from models import setup_db, Book
 
 BOOKS_PER_SHELF =8
@@ -13,7 +13,6 @@ def paginate(request, selection):
     page = request.args.get("page", 1, type=int)
     start = (page - 1) * BOOKS_PER_SHELF
     end = start + BOOKS_PER_SHELF
-
     format_books = [book.format() for book in selection]
     return format_books[start:end]
 
@@ -125,18 +124,21 @@ def create_app(test_config=None):
             abort(422)
 
     #Search route
-    @app.route("/books",methods=["POST"])
+    @app.route("/books/search",methods=["POST"])
     def search_books():
-        search_value = request.get_json()['search']
-        print(search_value)
-        selection = Book.query.order_by(Book.id).all()
-        books = paginate(request,selection)
-        return jsonify({
-            'search_key':search,
-            'books':books,
-            'total_books':len(selection),
-            'success':True
-        })
+        try:
+            search_value = request.get_json().get('search')
+            print(search_value)
+            selection = Book.query.filter(Book.title.ilike('%{}%'.format(search_value))).all()
+            books = paginate(request,selection)
+            return jsonify({
+                'search_key':search_value,
+                'books':books,
+                'total_books':len(selection),
+                'success':True
+            })
+        except SQLAlchemyError as e:
+            print(e)
 
     #Error handler for 404
     @app.errorhandler(404)

@@ -52,7 +52,7 @@ class BookTestCase(unittest.TestCase):
         self.assertEqual(data['message'],'Internal server error')
         self.assertEqual(data['error'],500)
 
-    def test_delete_book(self):
+    '''def test_delete_book(self):
         book = Book.query.filter(Book.id == 17).one_or_none()
         res = self.client().delete("/books/17")
         data = json.loads(res.data)
@@ -81,7 +81,23 @@ class BookTestCase(unittest.TestCase):
         res = self.client().post('/create/45',json=self.new_book)
         data = json.loads(res.data)
         self.assertEqual(res.status_code,404)
-        self.assertEqual(data['success'],False)
+        self.assertEqual(data['success'],False)'''
+
+    def test_search_books(self):
+        res = self.client().post("/books/search",json={'search':'Still'})
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code,200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(len(data['books']),8)
+        self.assertTrue(data['total_books'])
+
+    def test_search_books_without_match(self):
+        res = self.client().post("/books/search",json={'search':'Light'})
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code,200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(len(data['books']),0)
+        self.assertEqual(data['total_books'],0)
 
 if __name__ == "__main__":
     unittest.main()
